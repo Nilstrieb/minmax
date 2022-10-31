@@ -127,10 +127,10 @@ impl Display for Board {
                 let index = i * 3 + j;
                 match self.get(index) {
                     Some(player) => {
-                        write!(f, "\x1B[1m{player}\x1B[0m  ")?;
+                        write!(f, "\x1B[33m{player}\x1B[0m  ")?;
                     }
                     None => {
-                        write!(f, "\x1B[37m{index}\x1B[0m  ")?;
+                        write!(f, "\x1B[35m{index}\x1B[0m  ")?;
                     }
                 }
             }
