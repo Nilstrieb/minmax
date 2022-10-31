@@ -1,16 +1,17 @@
 mod board;
 mod game;
+mod minmax;
 
 use std::io::Write;
 
-use board::Player;
-
-pub use board::Board;
+pub use board::{Board, Player, State};
+pub use minmax::PerfectPlayer;
 
 pub trait GamePlayer {
     fn next_move(&mut self, board: &mut Board, this_player: Player);
 }
 
+#[derive(Clone)]
 pub struct GreedyPlayer;
 
 impl GamePlayer for GreedyPlayer {
@@ -20,6 +21,7 @@ impl GamePlayer for GreedyPlayer {
     }
 }
 
+#[derive(Clone)]
 pub struct HumanPlayer;
 
 impl GamePlayer for HumanPlayer {
@@ -43,6 +45,31 @@ impl GamePlayer for HumanPlayer {
                 },
                 Ok(_) | Err(_) => {
                     println!("Invalid input.")
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct RandomPlayer;
+
+fn fun_random() -> u64 {
+    use std::hash::{BuildHasher, Hasher};
+    std::collections::hash_map::RandomState::new()
+        .build_hasher()
+        .finish()
+}
+
+impl GamePlayer for RandomPlayer {
+    fn next_move(&mut self, board: &mut Board, this_player: Player) {
+        loop {
+            let next = (fun_random() % 9) as usize;
+            match board.get(next) {
+                Some(_) => {}
+                None => {
+                    board.set(next, Some(this_player));
+                    return;
                 }
             }
         }

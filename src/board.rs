@@ -6,6 +6,13 @@ pub enum Player {
     O,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum State {
+    Winner(Player),
+    InProgress,
+    Draw,
+}
+
 impl Player {
     pub fn opponent(self) -> Self {
         match self {
@@ -23,7 +30,7 @@ impl Player {
         })
     }
 
-    fn as_u8(this: Option<Player>) -> u8 {
+    pub fn as_u8(this: Option<Player>) -> u8 {
         match this {
             Some(Player::X) => 0,
             Some(Player::O) => 1,
@@ -95,28 +102,35 @@ impl Board {
         self.validate();
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = Option<Player>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = Option<Player>> {
         let mut i = 0;
+        let this = self.clone();
         std::iter::from_fn(move || {
-            let result = (i < 8).then(|| self.get(i));
+            let result = (i < 8).then(|| this.get(i));
             i += 1;
             result
         })
     }
 
-    pub fn result(&self) -> Option<Player> {
+    pub fn result(&self) -> State {
         win_table::result(self)
     }
 }
 
 mod win_table {
-    use super::{Board, Player};
+    use super::{Board, Player, State};
 
     const WIN_TABLE_SIZE: usize = 2usize.pow(2 * 9);
     const WIN_TABLE: &[u8; WIN_TABLE_SIZE] = include_bytes!(concat!(env!("OUT_DIR"), "/win_table"));
 
-    pub fn result(board: &Board) -> Option<Player> {
-        Player::from_u8(WIN_TABLE[board.0 as usize]).unwrap()
+    pub fn result(board: &Board) -> State {
+        match WIN_TABLE[board.0 as usize] {
+            0 => State::Winner(Player::X),
+            1 => State::Winner(Player::X),
+            2 => State::InProgress,
+            3 => State::Draw,
+            n => panic!("Invalid value {n} in table"),
+        }
     }
 }
 
