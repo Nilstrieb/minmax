@@ -4,14 +4,18 @@ use crate::{
 };
 
 impl Board {
-    pub fn play<A: GamePlayer, B: GamePlayer>(&mut self, a: &mut A, b: &mut B) -> Option<Player> {
+    pub fn default_play<X: GamePlayer, O: GamePlayer>() -> Option<Player> {
+        Self::empty().play(&mut X::default(), &mut O::default())
+    }
+
+    pub fn play<A: GamePlayer, B: GamePlayer>(&mut self, x: &mut A, o: &mut B) -> Option<Player> {
         let mut current_player = Player::X;
 
         for _ in 0..9 {
             if current_player == Player::X {
-                a.next_move(self, current_player);
+                x.next_move(self, current_player);
             } else {
-                b.next_move(self, current_player);
+                o.next_move(self, current_player);
             }
 
             match self.result() {

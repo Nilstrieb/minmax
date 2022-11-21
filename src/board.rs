@@ -58,24 +58,21 @@ impl Board {
         Self(0x0002AAAA)
     }
 
-    #[cfg(not(debug_assertions))]
-    fn validate(&self) {}
-
-    #[cfg(debug_assertions)]
     fn validate(&self) {
-        let board = self.0;
-        for i in 0..16 {
-            let next_step = board >> (i * 2);
-            let mask = 0b11;
-            let pos = next_step & mask;
-            if pos >= 3 {
-                panic!("Invalid bits, self: {board:0X}, bits: {pos:0X}");
+        if cfg!(debug_assertions) {
+            let board = self.0;
+            for i in 0..16 {
+                let next_step = board >> (i * 2);
+                let mask = 0b11;
+                let pos = next_step & mask;
+                if pos >= 3 {
+                    panic!("Invalid bits, self: {board:0X}, bits: {pos:0X}");
+                }
             }
         }
     }
 
     pub fn get(&self, index: usize) -> Option<Player> {
-        self.validate();
         debug_assert!(index < 9);
 
         let board = self.0;
@@ -83,7 +80,13 @@ impl Board {
         let shifted = board >> (index * 2);
         let masked = shifted & 0b11;
 
-        Player::from_u8(masked as u8).unwrap()
+        // SAFETY: So uh, this is a bit unlucky.
+        // You see, there are two entire bits of information at our disposal for each position.
+        // This is really bad. We only have three valid states. So we need to do _something_ if it's invalid.
+        // We just hope that it will never be invalid which it really shouldn't be and also have a debug assertion
+        // here to make sure that it really is valid and then if it's not invalid we just mov it out and are happy.
+        self.validate();
+        unsafe { Player::from_u8(masked as u8).unwrap_unchecked() }
     }
 
     pub fn set(&mut self, index: usize, value: Option<Player>) {
@@ -106,7 +109,7 @@ impl Board {
         let mut i = 0;
         let this = self.clone();
         std::iter::from_fn(move || {
-            let result = (i < 8).then(|| this.get(i));
+            let result = (i < 9).then(|| this.get(i));
             i += 1;
             result
         })
@@ -121,7 +124,7 @@ mod win_table {
     use super::{Board, Player, State};
 
     const WIN_TABLE_SIZE: usize = 2usize.pow(2 * 9);
-    const WIN_TABLE: &[u8; WIN_TABLE_SIZE] = include_bytes!(concat!(env!("OUT_DIR"), "/win_table"));
+    static WIN_TABLE: &[u8; WIN_TABLE_SIZE] = include_bytes!(concat!(env!("OUT_DIR"), "/win_table"));
 
     pub fn result(board: &Board) -> State {
         match WIN_TABLE[board.0 as usize] {

@@ -1,3 +1,25 @@
+//! Builds the board state table
+//! 
+//! The board is encoded as an 18 bit integer, two bits for each position.
+//! The position are in the bits row by row with the first position being the
+//! least significant two bits.
+//! ```text
+//! 0 => X
+//! 1 => O
+//! 2 => Empty
+//! 3 => INVALID
+//! ```
+//! 
+//! Then, this integer is used as an index into the winner table.
+//! Each byte of the winner table contains the information about the game state.
+//! ```text
+//! 0 => X
+//! 1 => O
+//! 2 => In Progress
+//! 3 => Draw
+//! _ => INVALID
+//! ```
+
 use std::{fs::File, io::Write, path::PathBuf};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -69,7 +91,7 @@ impl Board {
         let mut i = 0;
         let this = self.clone();
         std::iter::from_fn(move || {
-            let result = (i < 8).then(|| this.get(i));
+            let result = (i < 9).then(|| this.get(i));
             i += 1;
             result
         })
