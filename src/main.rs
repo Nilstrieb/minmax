@@ -9,7 +9,7 @@ fn main() {
 
     let start = SystemTime::now();
 
-    for _ in 0..1 {
+    for _ in 0..100 {
         let result = play_round::<PerfectPlayer, GreedyPlayer>(false);
         let idx = Player::as_u8(result);
         results[idx as usize] += 1;

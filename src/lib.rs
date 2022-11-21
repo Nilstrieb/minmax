@@ -1,14 +1,16 @@
 #![feature(never_type, try_trait_v2)]
 
 mod board;
-mod connect4;
+pub mod connect4;
 mod game;
 mod perfect;
+mod player;
 
 use std::io::Write;
 
-pub use board::{Board, Player, State};
+pub use board::Board;
 pub use perfect::PerfectPlayer;
+pub use player::{Player, State};
 
 pub trait GamePlayer: Default {
     fn next_move(&mut self, board: &mut Board, this_player: Player);

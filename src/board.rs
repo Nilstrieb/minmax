@@ -1,52 +1,6 @@
 use std::fmt::{Display, Write};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Player {
-    X,
-    O,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum State {
-    Winner(Player),
-    InProgress,
-    Draw,
-}
-
-impl Player {
-    pub fn opponent(self) -> Self {
-        match self {
-            Self::X => Self::O,
-            Self::O => Self::X,
-        }
-    }
-
-    fn from_u8(num: u8) -> Result<Option<Self>, ()> {
-        Ok(match num {
-            0 => Some(Player::X),
-            1 => Some(Player::O),
-            2 => None,
-            _ => return Err(()),
-        })
-    }
-
-    pub fn as_u8(this: Option<Player>) -> u8 {
-        match this {
-            Some(Player::X) => 0,
-            Some(Player::O) => 1,
-            None => 2,
-        }
-    }
-}
-
-impl Display for Player {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::X => "X",
-            Self::O => "O",
-        })
-    }
-}
+use crate::{Player, State};
 
 #[derive(Clone)]
 pub struct Board(u32);
@@ -121,10 +75,12 @@ impl Board {
 }
 
 mod win_table {
-    use super::{Board, Player, State};
+    use super::Board;
+    use crate::{Player, State};
 
     const WIN_TABLE_SIZE: usize = 2usize.pow(2 * 9);
-    static WIN_TABLE: &[u8; WIN_TABLE_SIZE] = include_bytes!(concat!(env!("OUT_DIR"), "/win_table"));
+    static WIN_TABLE: &[u8; WIN_TABLE_SIZE] =
+        include_bytes!(concat!(env!("OUT_DIR"), "/win_table"));
 
     pub fn result(board: &Board) -> State {
         match WIN_TABLE[board.0 as usize] {

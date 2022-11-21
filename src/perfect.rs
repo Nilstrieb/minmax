@@ -1,9 +1,6 @@
 use std::ops::Neg;
 
-use crate::{
-    board::{Player, State},
-    Board, GamePlayer,
-};
+use crate::{Board, GamePlayer, Player, State};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Score {

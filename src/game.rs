@@ -1,7 +1,4 @@
-use crate::{
-    board::{Player, State},
-    Board, GamePlayer,
-};
+use crate::{Board, GamePlayer, Player, State};
 
 impl Board {
     pub fn default_play<X: GamePlayer, O: GamePlayer>() -> Option<Player> {
