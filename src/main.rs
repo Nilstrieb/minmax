@@ -2,7 +2,10 @@
 
 use std::time::SystemTime;
 
-use minmax::{Board, GamePlayer, GreedyPlayer, HumanPlayer, PerfectPlayer, Player, RandomPlayer};
+use minmax::{
+    tic_tac_toe::{Board, GreedyPlayer, HumanPlayer, PerfectPlayer, TicTacToe},
+    GamePlayer, Player,
+};
 
 fn main() {
     let mut results = [0, 0, 0];
@@ -25,7 +28,7 @@ fn main() {
     println!("Completed in {}ms", time.as_millis());
 }
 
-fn play_round<X: GamePlayer, O: GamePlayer>(print: bool) -> Option<Player> {
+fn play_round<X: GamePlayer<TicTacToe>, O: GamePlayer<TicTacToe>>(print: bool) -> Option<Player> {
     let mut board = Board::empty();
     let result = board.play(&mut X::default(), &mut O::default());
     if print {

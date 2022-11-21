@@ -1,6 +1,8 @@
 use std::ops::Neg;
 
-use crate::{Board, GamePlayer, Player, State};
+use crate::{GamePlayer, Player, State};
+
+use super::{board::Board, TicTacToe};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Score {
@@ -102,7 +104,7 @@ impl PerfectPlayer {
     }
 }
 
-impl GamePlayer for PerfectPlayer {
+impl GamePlayer<TicTacToe> for PerfectPlayer {
     fn next_move(&mut self, board: &mut Board, this_player: Player) {
         self.best_move = usize::MAX;
         self.minmax(board, this_player, 0);
