@@ -1,6 +1,6 @@
 use std::fmt::{Display, Write};
 
-use crate::{Player, State};
+use crate::{minmax::GameBoard, Player, State};
 
 #[derive(Clone)]
 pub struct Board(u32);
@@ -110,6 +110,34 @@ impl Display for Board {
             f.write_char('\n')?;
         }
         Ok(())
+    }
+}
+
+impl GameBoard for Board {
+    type Move = usize;
+
+    fn possible_moves(&self) -> impl Iterator<Item = Self::Move> {
+        debug_assert!(
+            !self.iter().all(|x| x.is_some()),
+            "the board is full but state is InProgress"
+        );
+
+        self.iter()
+            .enumerate()
+            .filter(|(_, position)| position.is_none())
+            .map(|(pos, _)| pos)
+    }
+
+    fn result(&self) -> State {
+        Board::result(self)
+    }
+
+    fn make_move(&mut self, position: Self::Move, player: Player) {
+        self.set(position, Some(player));
+    }
+
+    fn undo_move(&mut self, position: Self::Move) {
+        self.set(position, None);
     }
 }
 
