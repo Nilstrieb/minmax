@@ -9,7 +9,7 @@ fn main() {
 
     let start = SystemTime::now();
 
-    for _ in 0..1000 {
+    for _ in 0..1 {
         let result = play_round::<PerfectPlayer, GreedyPlayer>(false);
         let idx = Player::as_u8(result);
         results[idx as usize] += 1;
@@ -29,17 +29,17 @@ fn play_round<X: GamePlayer, O: GamePlayer>(print: bool) -> Option<Player> {
     let mut board = Board::empty();
     let result = board.play(&mut X::default(), &mut O::default());
     if print {
-        //println!("{board}");
+        println!("{board}");
     }
     match result {
         Some(winner) => {
             if print {
-                //println!("player {winner} won!");
+                println!("player {winner} won!");
             }
         }
         None => {
             if print {
-                //println!("a draw...")
+                println!("a draw...")
             }
         }
     }

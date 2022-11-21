@@ -1,4 +1,7 @@
+#![feature(never_type, try_trait_v2)]
+
 mod board;
+mod connect4;
 mod game;
 mod perfect;
 
