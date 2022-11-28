@@ -2,7 +2,7 @@ use std::ops::Neg;
 
 use crate::{GamePlayer, Player, State};
 
-use super::{board::Board, TicTacToe};
+use super::TicTacToe;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Score {
@@ -41,7 +41,7 @@ impl PerfectPlayer {
         }
     }
 
-    fn minmax(&mut self, board: &mut Board, player: Player, depth: usize) -> Score {
+    fn minmax(&mut self, board: &mut TicTacToe, player: Player, depth: usize) -> Score {
         if depth < 2 {
             //print!("{board}{}| playing {player}: ", " ".repeat(depth));
         }
@@ -105,7 +105,7 @@ impl PerfectPlayer {
 }
 
 impl GamePlayer<TicTacToe> for PerfectPlayer {
-    fn next_move(&mut self, board: &mut Board, this_player: Player) {
+    fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
         self.best_move = usize::MAX;
         self.minmax(board, this_player, 0);
 

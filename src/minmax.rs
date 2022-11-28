@@ -2,25 +2,17 @@ use std::ops::Neg;
 
 use crate::{Game, GamePlayer, Player, State};
 
-pub trait GameBoard {
-    type Move: Copy;
-
-    fn possible_moves(&self) -> impl Iterator<Item = Self::Move>;
-
-    fn result(&self) -> State;
-
-    fn make_move(&mut self, position: Self::Move, player: Player);
-
-    fn undo_move(&mut self, position: Self::Move);
-}
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Score(i8);
+pub struct Score(i32);
 
 impl Score {
-    const LOST: Self = Self(i8::MIN);
+    const LOST: Self = Self(i32::MIN);
     const TIE: Self = Self(0);
-    const WON: Self = Self(i8::MAX);
+    const WON: Self = Self(i32::MAX);
+
+    pub fn new(int: i32) -> Self {
+        Self(int)
+    }
 }
 
 impl Neg for Score {
@@ -32,25 +24,26 @@ impl Neg for Score {
 }
 
 #[derive(Clone)]
-pub struct PerfectPlayer<B: GameBoard> {
+pub struct PerfectPlayer<B: Game> {
     best_move: Option<B::Move>,
 }
 
-impl<B: GameBoard> Default for PerfectPlayer<B> {
+impl<B: Game> Default for PerfectPlayer<B> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<B: GameBoard> PerfectPlayer<B> {
+impl<B: Game> PerfectPlayer<B> {
     pub fn new() -> Self {
         Self { best_move: None }
     }
 
     fn minmax(&mut self, board: &mut B, player: Player, depth: usize) -> Score {
-        if depth < 2 {
-            //print!("{board}{}| playing {player}: ", " ".repeat(depth));
+        if let Some(max_depth) = B::REASONABLE_SEARCH_DEPTH && depth >= max_depth {
+            return board.rate(player);
         }
+
         match board.result() {
             State::Winner(winner) => {
                 if winner == player {
@@ -83,8 +76,8 @@ impl<B: GameBoard> PerfectPlayer<B> {
     }
 }
 
-impl<G: Game> GamePlayer<G> for PerfectPlayer<G::Board> {
-    fn next_move(&mut self, board: &mut G::Board, this_player: Player) {
+impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
+    fn next_move(&mut self, board: &mut G, this_player: Player) {
         self.best_move = None;
         self.minmax(board, this_player, 0);
 

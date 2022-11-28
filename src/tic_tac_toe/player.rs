@@ -2,13 +2,13 @@ use std::io::Write;
 
 use crate::{GamePlayer, Player};
 
-use super::{board::Board, TicTacToe};
+use super::TicTacToe;
 
 #[derive(Clone, Default)]
 pub struct GreedyPlayer;
 
 impl GamePlayer<TicTacToe> for GreedyPlayer {
-    fn next_move(&mut self, board: &mut Board, this_player: Player) {
+    fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
         let first_free = board.iter().position(|p| p.is_none()).unwrap();
         board.set(first_free, Some(this_player));
     }
@@ -18,7 +18,7 @@ impl GamePlayer<TicTacToe> for GreedyPlayer {
 pub struct HumanPlayer;
 
 impl GamePlayer<TicTacToe> for HumanPlayer {
-    fn next_move(&mut self, board: &mut Board, this_player: Player) {
+    fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
         loop {
             print!("{board}where to put the next {this_player}? (0-8): ");
 
@@ -55,7 +55,7 @@ fn fun_random() -> u64 {
 }
 
 impl GamePlayer<TicTacToe> for RandomPlayer {
-    fn next_move(&mut self, board: &mut Board, this_player: Player) {
+    fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
         loop {
             let next = (fun_random() % 9) as usize;
             match board.get(next) {

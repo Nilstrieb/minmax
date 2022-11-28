@@ -1,26 +1,17 @@
-use crate::Game;
-
 mod board;
 mod game;
 mod perfect;
 mod player;
 
-pub use {board::Board, perfect::PerfectPlayer, player::*};
-
-pub struct TicTacToe;
-
-impl Game for TicTacToe {
-    type Board = board::Board;
-}
+pub use {board::TicTacToe, perfect::PerfectPlayer, player::*};
 
 #[cfg(test)]
 mod tests {
-    use crate::{tic_tac_toe::board::Board, GamePlayer, Player};
+    use crate::{tic_tac_toe::board::TicTacToe, GamePlayer, Player};
 
     use super::{
         perfect::PerfectPlayer,
         player::{GreedyPlayer, RandomPlayer},
-        TicTacToe,
     };
 
     fn assert_win_ratio<X: GamePlayer<TicTacToe>, O: GamePlayer<TicTacToe>>(
@@ -30,7 +21,7 @@ mod tests {
         let mut results = [0u64, 0, 0];
 
         for _ in 0..runs {
-            let result = Board::default_play::<X, O>();
+            let result = TicTacToe::default_play::<X, O>();
             let idx = Player::as_u8(result);
             results[idx as usize] += 1;
         }

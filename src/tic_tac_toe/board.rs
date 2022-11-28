@@ -1,11 +1,11 @@
 use std::fmt::{Display, Write};
 
-use crate::{minmax::GameBoard, Player, State};
+use crate::{minmax::Score, Player, State, Game};
 
 #[derive(Clone)]
-pub struct Board(u32);
+pub struct TicTacToe(u32);
 
-impl Board {
+impl TicTacToe {
     pub fn empty() -> Self {
         // A = 1010
         // 18 bits - 9 * 2 bits - 4.5 nibbles
@@ -75,14 +75,14 @@ impl Board {
 }
 
 mod win_table {
-    use super::Board;
+    use super::TicTacToe;
     use crate::{Player, State};
 
     const WIN_TABLE_SIZE: usize = 2usize.pow(2 * 9);
     static WIN_TABLE: &[u8; WIN_TABLE_SIZE] =
         include_bytes!(concat!(env!("OUT_DIR"), "/win_table"));
 
-    pub fn result(board: &Board) -> State {
+    pub fn result(board: &TicTacToe) -> State {
         match WIN_TABLE[board.0 as usize] {
             0 => State::Winner(Player::X),
             1 => State::Winner(Player::X),
@@ -93,7 +93,7 @@ mod win_table {
     }
 }
 
-impl Display for Board {
+impl Display for TicTacToe {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for i in 0..3 {
             for j in 0..3 {
@@ -113,8 +113,14 @@ impl Display for Board {
     }
 }
 
-impl GameBoard for Board {
+impl Game for TicTacToe {
     type Move = usize;
+
+    const REASONABLE_SEARCH_DEPTH: Option<usize> = None;
+
+    fn empty() -> Self {
+        Self::empty()
+    }
 
     fn possible_moves(&self) -> impl Iterator<Item = Self::Move> {
         debug_assert!(
@@ -129,7 +135,11 @@ impl GameBoard for Board {
     }
 
     fn result(&self) -> State {
-        Board::result(self)
+        TicTacToe::result(self)
+    }
+
+    fn rate(&self, _: Player) -> Score {
+        unimplemented!("we always finish the board")
     }
 
     fn make_move(&mut self, position: Self::Move, player: Player) {
@@ -143,11 +153,11 @@ impl GameBoard for Board {
 
 #[cfg(test)]
 mod tests {
-    use super::{Board, Player};
+    use super::{Player, TicTacToe};
 
     #[test]
     fn board_field() {
-        let mut board = Board::empty();
+        let mut board = TicTacToe::empty();
         board.set(0, None);
         board.set(8, Some(Player::X));
         board.set(4, Some(Player::O));

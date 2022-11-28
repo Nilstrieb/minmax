@@ -1,6 +1,9 @@
-use std::ops::Index;
+use std::{
+    fmt::{Display, Write},
+    ops::{Index, IndexMut},
+};
 
-use crate::{Player, State};
+use crate::{minmax::Score, Game, GamePlayer, Player, State};
 
 type Position = Option<Player>;
 
@@ -12,11 +15,12 @@ const BOARD_POSITIONS: usize = WIDTH * HEIGTH;
 ///  7  8  9 10 11 12 13
 /// 14 15 16 17 18 19 20
 /// 21 22 23 24 25 26 27
-pub struct Board {
+#[derive(Clone)]
+pub struct Connect4 {
     positions: [Position; BOARD_POSITIONS],
 }
 
-impl Board {
+impl Connect4 {
     pub fn new() -> Self {
         Self {
             positions: [None; BOARD_POSITIONS],
@@ -86,9 +90,30 @@ impl Board {
             })
             .unwrap_or(State::InProgress)
     }
+
+    fn rate(&self, player: Player) -> Score {
+        #[rustfmt::skip]
+        const WIN_COUNT_TABLE: [i32; BOARD_POSITIONS] = [
+            3, 4, 6, 7, 6, 4, 3,
+            2, 4, 6, 7, 6, 4, 2,
+            2, 4, 6, 7, 6, 4, 2,
+            3, 4, 6, 7, 6, 4, 2,
+        ];
+
+        let score_player = |player: Player| {
+            self.positions
+                .iter()
+                .enumerate()
+                .filter(|(_, state)| **state == Some(player))
+                .map(|(pos, _)| WIN_COUNT_TABLE[pos])
+                .sum::<i32>()
+        };
+
+        Score::new(score_player(player) - score_player(player.opponent()))
+    }
 }
 
-impl Index<usize> for Board {
+impl Index<usize> for Connect4 {
     type Output = Position;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -96,13 +121,87 @@ impl Index<usize> for Board {
     }
 }
 
+impl IndexMut<usize> for Connect4 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.positions[index]
+    }
+}
+
+impl Game for Connect4 {
+    type Move = usize;
+
+    const REASONABLE_SEARCH_DEPTH: Option<usize> = Some(5);
+
+    fn empty() -> Self {
+        Self::new()
+    }
+
+    fn possible_moves(&self) -> impl Iterator<Item = Self::Move> {
+        let board = self.clone();
+        (0..WIDTH).filter(move |col| board[*col].is_none())
+    }
+
+    fn result(&self) -> State {
+        Connect4::result(&self)
+    }
+
+    fn make_move(&mut self, position: Self::Move, player: Player) {
+        for i in 0..3 {
+            let prev = position + (i * WIDTH);
+            let next = position + ((i + 1) * WIDTH);
+
+            if self[next].is_some() {
+                self[prev] = Some(player);
+                break;
+            }
+        }
+
+        let bottom = position + (3 * WIDTH);
+        self[bottom] = Some(player);
+    }
+
+    fn undo_move(&mut self, position: Self::Move) {
+        for i in 0..4 {
+            let pos = position + (i * WIDTH);
+
+            if self[pos].is_some() {
+                self[pos] = None;
+            }
+        }
+    }
+
+    fn rate(&self, player: Player) -> Score {
+        Connect4::rate(&self, player)
+    }
+}
+
+impl Display for Connect4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for i in 0..HEIGTH {
+            for j in 0..WIDTH {
+                let index = (i * WIDTH) + j;
+                match self[index] {
+                    Some(player) => {
+                        write!(f, "\x1B[33m  {player}\x1B[0m  ")?;
+                    }
+                    None => {
+                        write!(f, "\x1B[35m{index:3 }\x1B[0m  ")?;
+                    }
+                }
+            }
+            f.write_char('\n')?;
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{Player, State};
 
-    use super::Board;
+    use super::Connect4;
 
-    fn parse_board(board: &str) -> Board {
+    fn parse_board(board: &str) -> Connect4 {
         let positions = board
             .chars()
             .filter(|char| !char.is_whitespace())
@@ -119,7 +218,7 @@ mod tests {
                 board.chars().filter(|c| !c.is_whitespace()).count()
             ));
 
-        Board { positions }
+        Connect4 { positions }
     }
 
     fn test(board: &str, state: State) {
