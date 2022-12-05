@@ -1,6 +1,6 @@
 use std::fmt::{Display, Write};
 
-use crate::{minmax::Score, Player, State, Game};
+use crate::{Game, Player, Score, State};
 
 #[derive(Clone)]
 pub struct TicTacToe(u32);

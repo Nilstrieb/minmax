@@ -1,5 +1,7 @@
 use std::io::Write;
 
+use rand::Rng;
+
 use crate::{GamePlayer, Player};
 
 use super::TicTacToe;
@@ -47,17 +49,10 @@ impl GamePlayer<TicTacToe> for HumanPlayer {
 #[derive(Clone, Default)]
 pub struct RandomPlayer;
 
-fn fun_random() -> u64 {
-    use std::hash::{BuildHasher, Hasher};
-    std::collections::hash_map::RandomState::new()
-        .build_hasher()
-        .finish()
-}
-
 impl GamePlayer<TicTacToe> for RandomPlayer {
     fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
         loop {
-            let next = (fun_random() % 9) as usize;
+            let next = rand::thread_rng().gen_range(0..9);
             match board.get(next) {
                 Some(_) => {}
                 None => {

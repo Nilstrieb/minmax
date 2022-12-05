@@ -1,27 +1,25 @@
 mod board;
 mod game;
-mod perfect;
 mod player;
 
-pub use {board::TicTacToe, perfect::PerfectPlayer, player::*};
+pub use {board::TicTacToe, player::*};
 
 #[cfg(test)]
 mod tests {
-    use crate::{tic_tac_toe::board::TicTacToe, GamePlayer, Player};
+    use crate::{minmax::PerfectPlayer, tic_tac_toe::board::TicTacToe, GamePlayer, Player};
 
-    use super::{
-        perfect::PerfectPlayer,
-        player::{GreedyPlayer, RandomPlayer},
-    };
+    use super::player::{GreedyPlayer, RandomPlayer};
 
     fn assert_win_ratio<X: GamePlayer<TicTacToe>, O: GamePlayer<TicTacToe>>(
         runs: u64,
         x_win_ratio: f64,
+        x: impl Fn() -> X,
+        o: impl Fn() -> O,
     ) {
         let mut results = [0u64, 0, 0];
 
         for _ in 0..runs {
-            let result = TicTacToe::default_play::<X, O>();
+            let result = TicTacToe::empty().play::<X, O>(&mut x(), &mut o());
             let idx = Player::as_u8(result);
             results[idx as usize] += 1;
         }
@@ -35,11 +33,11 @@ mod tests {
 
     #[test]
     fn perfect_always_beats_greedy() {
-        assert_win_ratio::<PerfectPlayer, GreedyPlayer>(20, 1.0);
+        assert_win_ratio(20, 1.0, || PerfectPlayer::new(), || GreedyPlayer);
     }
 
     #[test]
     fn perfect_beats_random() {
-        assert_win_ratio::<PerfectPlayer, RandomPlayer>(10, 0.95);
+        assert_win_ratio(10, 0.95, || PerfectPlayer::new(), || RandomPlayer);
     }
 }

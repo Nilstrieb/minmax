@@ -12,13 +12,26 @@ pub mod tic_tac_toe;
 
 mod player;
 
-use std::fmt::Display;
+use std::{fmt::Display, ops::Neg};
 
-use minmax::Score;
+pub use self::minmax::PerfectPlayer;
 pub use player::{Player, State};
 
-pub trait GamePlayer<G: ?Sized + Game>: Default {
+pub trait GamePlayer<G: ?Sized + Game> {
     fn next_move(&mut self, board: &mut G, this_player: Player);
+}
+
+impl<G: Game, P: GamePlayer<G> + ?Sized> GamePlayer<G> for &mut P {
+    fn next_move(&mut self, board: &mut G, this_player: Player) {
+        P::next_move(self, board, this_player)
+    }
+}
+
+
+impl<G: Game, P: GamePlayer<G> + ?Sized> GamePlayer<G> for Box<P> {
+    fn next_move(&mut self, board: &mut G, this_player: Player) {
+        P::next_move(self, board, this_player)
+    }
 }
 
 pub trait Game: Display {
@@ -63,5 +76,33 @@ pub trait Game: Display {
 
             current_player = current_player.opponent();
         }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Score(i32);
+
+impl Score {
+    const MIN: Self = Self(i32::MIN);
+    const LOST: Self = Self(-100);
+    const TIE: Self = Self(0);
+    const WON: Self = Self(100);
+
+    pub fn new(int: i32) -> Self {
+        Self(int)
+    }
+
+    fn randomize(self) -> Self {
+        let score = self.0 as f32;
+        let rand = rand::thread_rng();
+        self
+    }
+}
+
+impl Neg for Score {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self(-self.0)
     }
 }

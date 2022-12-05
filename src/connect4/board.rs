@@ -3,7 +3,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::{minmax::Score, Game, Player, State};
+use crate::{Game, Player, Score, State};
 
 type Position = Option<Player>;
 
@@ -130,7 +130,7 @@ impl IndexMut<usize> for Connect4 {
 impl Game for Connect4 {
     type Move = usize;
 
-    const REASONABLE_SEARCH_DEPTH: Option<usize> = Some(5);
+    const REASONABLE_SEARCH_DEPTH: Option<usize> = Some(7);
 
     fn empty() -> Self {
         Self::new()

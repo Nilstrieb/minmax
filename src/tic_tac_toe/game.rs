@@ -3,10 +3,6 @@ use crate::{GamePlayer, Player, State};
 use super::TicTacToe;
 
 impl TicTacToe {
-    pub fn default_play<X: GamePlayer<TicTacToe>, O: GamePlayer<TicTacToe>>() -> Option<Player> {
-        Self::empty().play(&mut X::default(), &mut O::default())
-    }
-
     pub fn play<A: GamePlayer<TicTacToe>, B: GamePlayer<TicTacToe>>(
         &mut self,
         x: &mut A,
