@@ -3,7 +3,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::{minmax::Score, Game, GamePlayer, Player, State};
+use crate::{minmax::Score, Game, Player, State};
 
 type Position = Option<Player>;
 
@@ -55,7 +55,7 @@ impl Connect4 {
     fn check_rows(&self) -> State {
         for row_start in 0..HEIGTH {
             for offset in 0..4 {
-                let start = row_start + offset;
+                let start = (row_start * WIDTH) + offset;
                 self.check_four(start, start + 1, start + 2, start + 3)?;
             }
         }
@@ -152,7 +152,7 @@ impl Game for Connect4 {
 
             if self[next].is_some() {
                 self[prev] = Some(player);
-                break;
+                return;
             }
         }
 
@@ -181,8 +181,11 @@ impl Display for Connect4 {
             for j in 0..WIDTH {
                 let index = (i * WIDTH) + j;
                 match self[index] {
-                    Some(player) => {
-                        write!(f, "\x1B[33m  {player}\x1B[0m  ")?;
+                    Some(Player::X) => {
+                        write!(f, "\x1B[31m  X\x1B[0m  ")?;
+                    }
+                    Some(Player::O) => {
+                        write!(f, "\x1B[34m  O\x1B[0m  ")?;
                     }
                     None => {
                         write!(f, "\x1B[35m{index:3 }\x1B[0m  ")?;
