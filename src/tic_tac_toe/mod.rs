@@ -33,11 +33,11 @@ mod tests {
 
     #[test]
     fn perfect_always_beats_greedy() {
-        assert_win_ratio(20, 1.0, || PerfectPlayer::new(), || GreedyPlayer);
+        assert_win_ratio(20, 1.0, || PerfectPlayer::new(false), || GreedyPlayer);
     }
 
     #[test]
     fn perfect_beats_random() {
-        assert_win_ratio(10, 0.95, || PerfectPlayer::new(), || RandomPlayer);
+        assert_win_ratio(10, 0.95, || PerfectPlayer::new(false), || RandomPlayer);
     }
 }

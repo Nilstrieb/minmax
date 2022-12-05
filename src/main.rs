@@ -61,6 +61,8 @@ struct Args {
     x: PlayerConfig,
     #[arg(short)]
     o: PlayerConfig,
+    #[arg(long)]
+    no_print_time: bool,
 }
 
 fn main() {
@@ -72,7 +74,7 @@ fn main() {
                 match player {
                     PlayerConfig::Human => Box::new(connect4::HumanPlayer),
                     PlayerConfig::Perfect { depth } => {
-                        Box::new(PerfectPlayer::new().with_max_depth(depth))
+                        Box::new(PerfectPlayer::new(!args.no_print_time).with_max_depth(depth))
                     }
                 }
             };
@@ -87,7 +89,7 @@ fn main() {
                 match player {
                     PlayerConfig::Human => Box::new(tic_tac_toe::HumanPlayer),
                     PlayerConfig::Perfect { depth } => {
-                        Box::new(PerfectPlayer::new().with_max_depth(depth))
+                        Box::new(PerfectPlayer::new(!args.no_print_time).with_max_depth(depth))
                     }
                 }
             };

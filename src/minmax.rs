@@ -1,22 +1,26 @@
+use std::time::Instant;
+
 use crate::{Game, GamePlayer, Player, Score, State};
 
 #[derive(Clone)]
 pub struct PerfectPlayer<G: Game> {
     best_move: Option<G::Move>,
     max_depth: Option<usize>,
+    print_time: bool,
 }
 
 impl<G: Game> Default for PerfectPlayer<G> {
     fn default() -> Self {
-        Self::new()
+        Self::new(true)
     }
 }
 
 impl<G: Game> PerfectPlayer<G> {
-    pub fn new() -> Self {
+    pub fn new(print_time: bool) -> Self {
         Self {
             best_move: None,
             max_depth: G::REASONABLE_SEARCH_DEPTH,
+            print_time,
         }
     }
 
@@ -64,11 +68,15 @@ impl<G: Game> PerfectPlayer<G> {
 
 impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
     fn next_move(&mut self, board: &mut G, this_player: Player) {
-        println!("{board}");
-
+        let start = Instant::now();
         self.best_move = None;
         self.minmax(board, this_player, 0);
 
         board.make_move(self.best_move.expect("could not make move"), this_player);
+
+        if self.print_time {
+            let duration = start.elapsed();
+            println!("Move took {duration:?}");
+        }
     }
 }
