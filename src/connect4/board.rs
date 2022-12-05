@@ -166,6 +166,7 @@ impl Game for Connect4 {
 
             if self[pos].is_some() {
                 self[pos] = None;
+                return;
             }
         }
     }
