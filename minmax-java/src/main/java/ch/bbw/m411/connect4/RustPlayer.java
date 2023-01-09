@@ -3,8 +3,6 @@ package ch.bbw.m411.connect4;
 public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
     private static native int rustPlay(byte player, byte[] board);
 
-    private static native boolean isWinning(byte player, byte[] forColor);
-
     static {
         // This actually loads the shared object that we'll be creating.
         // The actual location of the .so or .dll may differ based on your
@@ -27,15 +25,6 @@ public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
             boardBuf[i] = value;
         }
         return boardBuf;
-    }
-
-    public static boolean isWinning(Connect4ArenaMain.Stone[] board, Connect4ArenaMain.Stone forColor) {
-        byte player = switch (forColor) {
-            case BLUE -> 0;
-            case RED -> 1;
-        };
-        byte[] boardBuf = RustPlayer.encodeBoard(board);
-        return RustPlayer.isWinning(player, boardBuf);
     }
 
     @Override
