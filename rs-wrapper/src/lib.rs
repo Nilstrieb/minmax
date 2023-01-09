@@ -2,7 +2,7 @@ use jni::objects::{JClass, JObject, ReleaseMode};
 use jni::sys::{jbyte, jint};
 use jni::JNIEnv;
 use minmax::{connect4::board::Connect4, GamePlayer};
-use minmax::{PerfectPlayer, Player};
+use minmax::{Game, PerfectPlayer, Player};
 
 /// We need to map the board.
 /// Rust:
@@ -22,7 +22,7 @@ use minmax::{PerfectPlayer, Player};
 fn map_idx(i: usize) -> usize {
     match () {
         () if i < 7 => i + 21,
-        () if i < 15 => i + 7,
+        () if i < 14 => i + 7,
         () if i < 21 => i - 7,
         () => i - 21,
     }
@@ -34,7 +34,10 @@ fn crate_board(java_board: &[i8]) -> Connect4 {
     for i in 0..28 {
         let java_int = java_board[i];
         let rust_value = match java_int {
-            0 => Some(Player::X),
+            0 => {
+                dbg!("x player {i}", i, map_idx(i));
+                Some(Player::X)
+            },
             1 => Some(Player::O),
             2 => None,
             _ => unreachable!(),
@@ -61,7 +64,11 @@ pub fn wrap_player(env: JNIEnv<'_>, current_player: i8, board: JObject<'_>) -> i
 
     let slice = unsafe { std::slice::from_raw_parts(byte_array.as_ptr() as *const _, 28) };
 
+    dbg!(slice);
+
     let mut board = crate_board(slice);
+
+    println!("{board}");
 
     let mut player = PerfectPlayer::new(false);
 
@@ -72,10 +79,16 @@ pub fn wrap_player(env: JNIEnv<'_>, current_player: i8, board: JObject<'_>) -> i
     };
 
     player.next_move(&mut board, current_player_rust);
-
     let result_move = player.best_move();
+    board.undo_move(result_move);
 
-    map_idx(result_move) as i32
+    let result_move = board.drop_player(result_move);
+
+    let java_idx = map_idx(result_move) as i32;
+
+    dbg!(result_move, java_idx);
+
+    java_idx
 }
 
 // This keeps Rust from "mangling" the name and making it unique for this

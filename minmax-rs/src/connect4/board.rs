@@ -115,6 +115,20 @@ impl Connect4 {
 
         Score::new(score_player(player) - score_player(player.opponent()))
     }
+
+    pub fn drop_player(&self, position: usize) -> usize {
+        for i in 0..3 {
+            let prev = position + (i * WIDTH);
+            let next = position + ((i + 1) * WIDTH);
+
+            if self[next].is_some() {
+                return prev;
+            }
+        }
+
+        let bottom = position + (3 * WIDTH);
+        bottom
+    }
 }
 
 impl Index<usize> for Connect4 {
@@ -150,18 +164,8 @@ impl Game for Connect4 {
     }
 
     fn make_move(&mut self, position: Self::Move, player: Player) {
-        for i in 0..3 {
-            let prev = position + (i * WIDTH);
-            let next = position + ((i + 1) * WIDTH);
-
-            if self[next].is_some() {
-                self[prev] = Some(player);
-                return;
-            }
-        }
-
-        let bottom = position + (3 * WIDTH);
-        self[bottom] = Some(player);
+        let pos = self.drop_player(position);
+        self[pos] = Some(player);
     }
 
     fn undo_move(&mut self, position: Self::Move) {
