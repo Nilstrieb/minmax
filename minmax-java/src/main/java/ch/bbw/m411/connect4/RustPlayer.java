@@ -18,9 +18,9 @@ public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
             if (stone == null) {
                 value = 2;
             } else if (stone == Connect4ArenaMain.Stone.BLUE) {
-                value = 0;
+                value = 1;
             } else {
-                value = 1; // red
+                value = 0; // red
             }
             boardBuf[i] = value;
         }
@@ -30,8 +30,8 @@ public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
     @Override
     protected int play() {
         byte player = switch (this.myColor) {
-            case BLUE -> 0;
-            case RED -> 1;
+            case BLUE -> 1;
+            case RED -> 0;
         };
         byte[] boardBuf = RustPlayer.encodeBoard(this.board);
         return RustPlayer.rustPlay(player, boardBuf);
