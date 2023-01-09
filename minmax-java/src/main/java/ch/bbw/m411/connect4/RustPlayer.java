@@ -3,6 +3,13 @@ package ch.bbw.m411.connect4;
 public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
     private static native int rustPlay(byte player, byte[] board);
 
+    static {
+        // This actually loads the shared object that we'll be creating.
+        // The actual location of the .so or .dll may differ based on your
+        // platform.
+        System.loadLibrary("rs_wrapper");
+    }
+
     @Override
     protected int play() {
         byte player = switch (this.myColor) {

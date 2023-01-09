@@ -11,6 +11,12 @@ java {
 	}
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'ch.bbw.m411.connect4.Connect4ArenaMain'
+    }
+}
+
 repositories {
 	mavenCentral()
 }
