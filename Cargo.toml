@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "minmax-rs",
+    "rs-wrapper"
+]
+
+
+[profile.dev]
+opt-level = 3
