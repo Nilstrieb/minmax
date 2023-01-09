@@ -3,6 +3,8 @@ package ch.bbw.m411.connect4;
 public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
     private static native int rustPlay(byte player, byte[] board);
 
+    private static native boolean isWinning(byte player, byte[] forColor);
+
     static {
         // This actually loads the shared object that we'll be creating.
         // The actual location of the .so or .dll may differ based on your
@@ -10,15 +12,10 @@ public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
         System.loadLibrary("rs_wrapper");
     }
 
-    @Override
-    protected int play() {
-        byte player = switch (this.myColor) {
-            case BLUE -> 0;
-            case RED -> 1;
-        };
-        byte[] boardBuf = new byte[this.board.length];
-        for (int i = 0; i < this.board.length; i++) {
-            var stone = this.board[i];
+    static byte[] encodeBoard(Connect4ArenaMain.Stone[] board) {
+        byte[] boardBuf = new byte[board.length];
+        for (int i = 0; i < board.length; i++) {
+            var stone = board[i];
             byte value;
             if (stone == null) {
                 value = 2;
@@ -29,6 +26,25 @@ public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
             }
             boardBuf[i] = value;
         }
+        return boardBuf;
+    }
+
+    public static boolean isWinning(Connect4ArenaMain.Stone[] board, Connect4ArenaMain.Stone forColor) {
+        byte player = switch (forColor) {
+            case BLUE -> 0;
+            case RED -> 1;
+        };
+        byte[] boardBuf = RustPlayer.encodeBoard(board);
+        return RustPlayer.isWinning(player, boardBuf);
+    }
+
+    @Override
+    protected int play() {
+        byte player = switch (this.myColor) {
+            case BLUE -> 0;
+            case RED -> 1;
+        };
+        byte[] boardBuf = RustPlayer.encodeBoard(this.board);
         return RustPlayer.rustPlay(player, boardBuf);
     }
 }
