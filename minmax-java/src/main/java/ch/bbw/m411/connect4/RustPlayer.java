@@ -1,7 +1,7 @@
 package ch.bbw.m411.connect4;
 
 public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
-    private native int rustPlay(byte player, Connect4ArenaMain.Stone[] board);
+    private static native int rustPlay(byte player, byte[] board);
 
     @Override
     protected int play() {
@@ -9,6 +9,19 @@ public class RustPlayer extends Connect4ArenaMain.DefaultPlayer {
             case BLUE -> 0;
             case RED -> 1;
         };
-        return this.rustPlay(player, this.board);
+        byte[] boardBuf = new byte[this.board.length];
+        for (int i = 0; i < this.board.length; i++) {
+            var stone = this.board[i];
+            byte value;
+            if (stone == null) {
+                value = 2;
+            } else if (stone == Connect4ArenaMain.Stone.BLUE) {
+                value = 0;
+            } else {
+                value = 1; // red
+            }
+            boardBuf[i] = value;
+        }
+        return RustPlayer.rustPlay(player, boardBuf);
     }
 }
