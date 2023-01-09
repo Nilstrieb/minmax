@@ -136,7 +136,7 @@ public class Connect4ArenaMain {
 		 * Givent the current {@link #board}, find a suitable position-index to play to.
 		 * @return the position to play to as defined by {@link Connect4Player#play(int)}.
 		 */
-		abstract int play();
+		protected abstract int play();
 
 	}
 
@@ -167,7 +167,7 @@ public class Connect4ArenaMain {
 			return sb.toString();
 		}
 		@Override
-		int play() {
+		protected int play() {
 			System.out.println("where to to put the next " + myColor + "?");
 			var scanner = new Scanner(System.in, StandardCharsets.UTF_8);
 			return Integer.parseInt(scanner.nextLine());
@@ -178,7 +178,7 @@ public class Connect4ArenaMain {
 	public static class GreedyPlayer extends DefaultPlayer {
 
 		@Override
-		int play() {
+		protected int play() {
 			for (int c = 0; c < WIDTH; c++) {
 				for (int r = 0; r < HEIGHT; r++) {
 					var index = r * WIDTH + c;
