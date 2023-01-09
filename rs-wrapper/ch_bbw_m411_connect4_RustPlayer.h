@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     ch_bbw_m411_connect4_RustPlayer
  * Method:    rustPlay
- * Signature: (B[Lch/bbw/m411/connect4/Connect4ArenaMain/Stone;)I
+ * Signature: (B[B)I
  */
 JNIEXPORT jint JNICALL Java_ch_bbw_m411_connect4_RustPlayer_rustPlay
-  (JNIEnv *, jobject, jbyte, jobjectArray);
+  (JNIEnv *, jclass, jbyte, jbyteArray);
 
 #ifdef __cplusplus
 }

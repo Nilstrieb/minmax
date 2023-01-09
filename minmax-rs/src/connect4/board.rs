@@ -27,6 +27,10 @@ impl Connect4 {
         }
     }
 
+    pub fn set_pos(&mut self, position: usize, value: Position) {
+        self.positions[position] = value;
+    }
+
     pub fn result(&self) -> State {
         match self.check_board() {
             State::Winner(winner) => State::Winner(winner),

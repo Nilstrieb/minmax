@@ -92,6 +92,7 @@ impl Score {
         Self(int)
     }
 
+    #[allow(unused)]
     fn randomize(self) -> Self {
         let score = self.0 as f32;
         let rand = rand::thread_rng();

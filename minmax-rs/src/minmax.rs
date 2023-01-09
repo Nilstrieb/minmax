@@ -29,6 +29,10 @@ impl<G: Game> PerfectPlayer<G> {
         self
     }
 
+    pub fn best_move(&self) -> G::Move {
+        self.best_move.expect("no move made yet")
+    }
+
     fn minmax(&mut self, board: &mut G, player: Player, depth: usize) -> Score {
         if let Some(max_depth) = self.max_depth && depth >= max_depth {
             return board.rate(player);
