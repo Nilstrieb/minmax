@@ -138,8 +138,13 @@ impl Game for TicTacToe {
         TicTacToe::result(self)
     }
 
-    fn rate(&self, _: Player) -> Score {
-        unimplemented!("we always finish the board")
+    fn rate(&self, player: Player) -> Score {
+        match self.result() {
+            State::Winner(winner) if player == winner => Score::WON,
+            State::Winner(_) => Score::LOST,
+            State::InProgress => Score::TIE,
+            State::Draw => Score::TIE,
+        }
     }
 
     fn make_move(&mut self, position: Self::Move, player: Player) {

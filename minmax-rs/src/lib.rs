@@ -12,7 +12,10 @@ pub mod tic_tac_toe;
 
 pub mod player;
 
-use std::{fmt::Display, ops::Neg};
+use std::{
+    fmt::{Debug, Display},
+    ops::Neg,
+};
 
 pub use self::minmax::PerfectPlayer;
 pub use player::{Player, State};
@@ -78,7 +81,7 @@ pub trait Game: Display {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Score(i32);
 
 impl Score {
@@ -105,4 +108,36 @@ impl Neg for Score {
     fn neg(self) -> Self::Output {
         Self(-self.0)
     }
+}
+
+impl Debug for Score {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Self::WON => f.write_str("WON"),
+            Self::LOST => f.write_str("LOST"),
+            Self(other) => Debug::fmt(&other, f),
+        }
+    }
+}
+
+#[cfg(test)]
+fn assert_win_ratio<G: Game, X: GamePlayer<G>, O: GamePlayer<G>>(
+    runs: u64,
+    x_win_ratio: f64,
+    x: impl Fn() -> X,
+    o: impl Fn() -> O,
+) {
+    let mut results = [0u64, 0, 0];
+
+    for _ in 0..runs {
+        let result = G::empty().play::<X, O>(&mut x(), &mut o());
+        let idx = Player::as_u8(result);
+        results[idx as usize] += 1;
+    }
+
+    let total = results.iter().copied().sum::<u64>();
+
+    let ratio = (total as f64) / (results[0] as f64);
+    println!("{ratio} >= {x_win_ratio}");
+    assert!(ratio >= x_win_ratio);
 }

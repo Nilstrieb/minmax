@@ -61,31 +61,37 @@ impl<G: Game> PerfectPlayer<G> {
 
                 for pos in board.possible_moves() {
                     board.make_move(pos, maximizing_player);
-                    let value =
-                        -self.minmax(board, maximizing_player.opponent(), -beta, -max_value, depth + 1);
+                    let value = -self.minmax(
+                        board,
+                        maximizing_player.opponent(),
+                        -beta,
+                        -max_value,
+                        depth + 1,
+                    );
 
                     board.undo_move(pos);
 
-                    if value > max_value {
+                    if value >= max_value {
                         max_value = value;
                         if depth == 0 {
                             self.best_move = Some(pos);
                         }
-                    }
-                    // Imagine a game tree like this
-                    //    P(  )
-                    //     /  \
-                    // A(10) B(  ) <- we are here in the loop for the first child that returned 11.
-                    //        /  \
-                    //     C(11) D(  )
-                    //
-                    // Our beta parameter is 10, because that's the current max_value of our parent.
-                    // If P plays B, we know that B will pick something _at least_ as good as C. This means
-                    // that B will be -11 or worse. -11 is definitly worse than -10, so playing B is definitly
-                    // a very bad idea, no matter the value of D. So don't even bother calculating the value of D
-                    // and just break out. 
-                    if max_value >= beta {
-                        break;
+
+                        // Imagine a game tree like this
+                        //    P(  )
+                        //     /  \
+                        // A(10) B(  ) <- we are here in the loop for the first child that returned 11.
+                        //        /  \
+                        //     C(11) D(  )
+                        //
+                        // Our beta parameter is 10, because that's the current max_value of our parent.
+                        // If P plays B, we know that B will pick something _at least_ as good as C. This means
+                        // that B will be -11 or worse. -11 is definitly worse than -10, so playing B is definitly
+                        // a very bad idea, no matter the value of D. So don't even bother calculating the value of D
+                        // and just break out.
+                        if max_value >= beta {
+                            break;
+                        }
                     }
                 }
 
@@ -107,5 +113,58 @@ impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
             let duration = start.elapsed();
             println!("Move took {duration:?}");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::assert_win_ratio;
+    use crate::connect4::board::Connect4;
+    use crate::minmax::PerfectPlayer;
+
+    use crate::player::{GreedyPlayer, RandomPlayer};
+    use crate::tic_tac_toe::TicTacToe;
+
+    #[test]
+    fn perfect_always_beats_greedy() {
+        assert_win_ratio::<TicTacToe, _, _>(1, 1.0, || PerfectPlayer::new(false), || GreedyPlayer);
+        assert_win_ratio::<Connect4, _, _>(
+            1,
+            1.0,
+            || PerfectPlayer::new(false).with_max_depth(Some(8)),
+            || GreedyPlayer,
+        );
+    }
+
+    #[test]
+    fn perfect_beats_random() {
+        assert_win_ratio::<TicTacToe, _, _>(
+            10,
+            0.95,
+            || PerfectPlayer::new(false),
+            || RandomPlayer,
+        );
+        assert_win_ratio::<Connect4, _, _>(
+            5,
+            0.95,
+            || PerfectPlayer::new(false).with_max_depth(Some(7)),
+            || RandomPlayer,
+        );
+    }
+
+    #[test]
+    fn good_beat_bad() {
+        assert_win_ratio::<TicTacToe, _, _>(
+            1,
+            1.0,
+            || PerfectPlayer::new(false).with_max_depth(Some(7)),
+            || PerfectPlayer::new(false).with_max_depth(Some(5)),
+        );
+        assert_win_ratio::<Connect4, _, _>(
+            1,
+            1.0,
+            || PerfectPlayer::new(false).with_max_depth(Some(7)),
+            || PerfectPlayer::new(false).with_max_depth(Some(5)),
+        );
     }
 }

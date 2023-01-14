@@ -87,8 +87,8 @@ fn main() {
                 }
             };
 
-            let player_a = get_player(args.o);
-            let player_b = get_player(args.x);
+            let player_a = get_player(args.x);
+            let player_b = get_player(args.o);
 
             play_with_players(player_a, player_b);
         }
@@ -105,8 +105,8 @@ fn main() {
                 }
             };
 
-            let player_a = get_player(args.o);
-            let player_b = get_player(args.x);
+            let player_a = get_player(args.x);
+            let player_b = get_player(args.o);
 
             play_with_players(player_a, player_b);
         }
