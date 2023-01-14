@@ -1,20 +1,8 @@
 use std::io::Write;
 
-use rand::Rng;
-
 use crate::{GamePlayer, Player};
 
 use super::TicTacToe;
-
-#[derive(Clone, Default)]
-pub struct GreedyPlayer;
-
-impl GamePlayer<TicTacToe> for GreedyPlayer {
-    fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
-        let first_free = board.iter().position(|p| p.is_none()).unwrap();
-        board.set(first_free, Some(this_player));
-    }
-}
 
 #[derive(Clone, Default)]
 pub struct HumanPlayer;
@@ -40,24 +28,6 @@ impl GamePlayer<TicTacToe> for HumanPlayer {
                 },
                 Ok(_) | Err(_) => {
                     println!("Invalid input.")
-                }
-            }
-        }
-    }
-}
-
-#[derive(Clone, Default)]
-pub struct RandomPlayer;
-
-impl GamePlayer<TicTacToe> for RandomPlayer {
-    fn next_move(&mut self, board: &mut TicTacToe, this_player: Player) {
-        loop {
-            let next = rand::thread_rng().gen_range(0..9);
-            match board.get(next) {
-                Some(_) => {}
-                None => {
-                    board.set(next, Some(this_player));
-                    return;
                 }
             }
         }

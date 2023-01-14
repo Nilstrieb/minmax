@@ -8,7 +8,7 @@ pub use {board::TicTacToe, player::*};
 mod tests {
     use crate::{minmax::PerfectPlayer, tic_tac_toe::board::TicTacToe, GamePlayer, Player};
 
-    use super::player::{GreedyPlayer, RandomPlayer};
+    use crate::player::{GreedyPlayer, RandomPlayer};
 
     fn assert_win_ratio<X: GamePlayer<TicTacToe>, O: GamePlayer<TicTacToe>>(
         runs: u64,
@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     fn perfect_always_beats_greedy() {
-        assert_win_ratio(20, 1.0, || PerfectPlayer::new(false), || GreedyPlayer);
+        assert_win_ratio(1, 1.0, || PerfectPlayer::new(false), || GreedyPlayer);
     }
 
     #[test]

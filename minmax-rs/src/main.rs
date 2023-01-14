@@ -5,6 +5,7 @@ use std::{fmt::Display, str::FromStr, time::SystemTime};
 use clap::{Parser, ValueEnum};
 use minmax::{
     connect4::{self, board::Connect4},
+    player::{GreedyPlayer, RandomPlayer},
     tic_tac_toe::{self, TicTacToe},
     Game, GamePlayer, PerfectPlayer, Player,
 };
@@ -12,6 +13,8 @@ use minmax::{
 #[derive(Debug, Clone)]
 enum PlayerConfig {
     Human,
+    Greedy,
+    Random,
     Perfect { depth: Option<usize> },
 }
 
@@ -26,6 +29,8 @@ impl FromStr for PlayerConfig {
         {
             "human" | "h" => Self::Human,
             "perfect" | "p" | "ai" | "minmax" => Self::Perfect { depth: None },
+            "greedy" | "g" => Self::Greedy,
+            "random" | "r" => Self::Random,
             string => {
                 return Err(format!(
                     "Invalid player: {string}. Available players: human,perfect"
@@ -73,9 +78,12 @@ fn main() {
             let get_player = |player| -> Box<dyn GamePlayer<Connect4>> {
                 match player {
                     PlayerConfig::Human => Box::new(connect4::HumanPlayer),
-                    PlayerConfig::Perfect { depth } => {
-                        Box::new(PerfectPlayer::new(!args.no_print_time).with_max_depth(depth))
-                    }
+                    PlayerConfig::Greedy => Box::new(GreedyPlayer),
+                    PlayerConfig::Random => Box::new(RandomPlayer),
+                    PlayerConfig::Perfect { depth } => Box::new(
+                        PerfectPlayer::new(!args.no_print_time)
+                            .with_max_depth(depth.or(Connect4::REASONABLE_SEARCH_DEPTH)),
+                    ),
                 }
             };
 
@@ -88,9 +96,12 @@ fn main() {
             let get_player = |player| -> Box<dyn GamePlayer<TicTacToe>> {
                 match player {
                     PlayerConfig::Human => Box::new(tic_tac_toe::HumanPlayer),
-                    PlayerConfig::Perfect { depth } => {
-                        Box::new(PerfectPlayer::new(!args.no_print_time).with_max_depth(depth))
-                    }
+                    PlayerConfig::Greedy => Box::new(GreedyPlayer),
+                    PlayerConfig::Random => Box::new(RandomPlayer),
+                    PlayerConfig::Perfect { depth } => Box::new(
+                        PerfectPlayer::new(!args.no_print_time)
+                            .with_max_depth(depth.or(TicTacToe::REASONABLE_SEARCH_DEPTH)),
+                    ),
                 }
             };
 
@@ -109,7 +120,7 @@ fn tic_tac_toe_stats() {
     let start = SystemTime::now();
 
     for _ in 0..100 {
-        let result = play::<PerfectPlayer<TicTacToe>, tic_tac_toe::GreedyPlayer, _>(false);
+        let result = play::<PerfectPlayer<TicTacToe>, GreedyPlayer, _>(false);
         let idx = Player::as_u8(result);
         results[idx as usize] += 1;
     }

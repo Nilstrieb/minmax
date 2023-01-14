@@ -10,7 +10,7 @@ pub mod connect4;
 mod minmax;
 pub mod tic_tac_toe;
 
-mod player;
+pub mod player;
 
 use std::{fmt::Display, ops::Neg};
 
@@ -26,7 +26,6 @@ impl<G: Game, P: GamePlayer<G> + ?Sized> GamePlayer<G> for &mut P {
         P::next_move(self, board, this_player)
     }
 }
-
 
 impl<G: Game, P: GamePlayer<G> + ?Sized> GamePlayer<G> for Box<P> {
     fn next_move(&mut self, board: &mut G, this_player: Player) {
