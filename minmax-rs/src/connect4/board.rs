@@ -148,7 +148,7 @@ impl IndexMut<usize> for Connect4 {
 impl Game for Connect4 {
     type Move = usize;
 
-    const REASONABLE_SEARCH_DEPTH: Option<usize> = Some(7);
+    const REASONABLE_SEARCH_DEPTH: Option<usize> = Some(11);
 
     fn empty() -> Self {
         Self::new()

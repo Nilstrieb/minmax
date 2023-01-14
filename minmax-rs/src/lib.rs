@@ -78,14 +78,14 @@ pub trait Game: Display {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Score(i32);
 
 impl Score {
-    const MIN: Self = Self(i32::MIN);
-    const LOST: Self = Self(-100);
+    // Due to the nature of two's completement, we can't actually negate this properly, so add 1.
+    const LOST: Self = Self(i32::MIN + 1);
     const TIE: Self = Self(0);
-    const WON: Self = Self(100);
+    const WON: Self = Self(i32::MAX);
 
     pub fn new(int: i32) -> Self {
         Self(int)

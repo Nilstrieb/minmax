@@ -33,14 +33,23 @@ impl<G: Game> PerfectPlayer<G> {
         self.best_move.expect("no move made yet")
     }
 
-    fn minmax(&mut self, board: &mut G, player: Player, depth: usize) -> Score {
+    fn minmax(
+        &mut self,
+        board: &mut G,
+        maximizing_player: Player,
+        alpha: Score,
+        beta: Score,
+        depth: usize,
+    ) -> Score {
+        // FIXME: Make depth decrease not increase.
         if let Some(max_depth) = self.max_depth && depth >= max_depth {
-            return board.rate(player);
+            // FIXME: Why do we have rate and result?
+            return board.rate(maximizing_player);
         }
 
         match board.result() {
             State::Winner(winner) => {
-                if winner == player {
+                if winner == maximizing_player {
                     Score::WON
                 } else {
                     Score::LOST
@@ -48,11 +57,12 @@ impl<G: Game> PerfectPlayer<G> {
             }
             State::Draw => Score::TIE,
             State::InProgress => {
-                let mut max_value = Score::MIN;
+                let mut max_value = alpha;
 
                 for pos in board.possible_moves() {
-                    board.make_move(pos, player);
-                    let value = -self.minmax(board, player.opponent(), depth + 1);
+                    board.make_move(pos, maximizing_player);
+                    let value =
+                        -self.minmax(board, maximizing_player.opponent(), -beta, -max_value, depth + 1);
 
                     board.undo_move(pos);
 
@@ -61,6 +71,21 @@ impl<G: Game> PerfectPlayer<G> {
                         if depth == 0 {
                             self.best_move = Some(pos);
                         }
+                    }
+                    // Imagine a game tree like this
+                    //    P(  )
+                    //     /  \
+                    // A(10) B(  ) <- we are here in the loop for the first child that returned 11.
+                    //        /  \
+                    //     C(11) D(  )
+                    //
+                    // Our beta parameter is 10, because that's the current max_value of our parent.
+                    // If P plays B, we know that B will pick something _at least_ as good as C. This means
+                    // that B will be -11 or worse. -11 is definitly worse than -10, so playing B is definitly
+                    // a very bad idea, no matter the value of D. So don't even bother calculating the value of D
+                    // and just break out. 
+                    if max_value >= beta {
+                        break;
                     }
                 }
 
@@ -74,7 +99,7 @@ impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
     fn next_move(&mut self, board: &mut G, this_player: Player) {
         let start = Instant::now();
         self.best_move = None;
-        self.minmax(board, this_player, 0);
+        self.minmax(board, this_player, Score::LOST, Score::WON, 0);
 
         board.make_move(self.best_move.expect("could not make move"), this_player);
 
