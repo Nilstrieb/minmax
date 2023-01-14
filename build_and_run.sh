@@ -19,3 +19,8 @@ echo "Setting LD_LIBRARY_PATH to $LD_LIBRARY_PATH"
 echo "Running Java tests. If this fails, there's something wrong :/"
 cd "$SCRIPT_DIR/minmax-java"
 ./gradlew build
+
+echo
+echo "To use this player in another project, set the following environment variable:"
+echo
+echo "export LD_LIBRARY_PATH=\"$SCRIPT_DIR/target/release\""
