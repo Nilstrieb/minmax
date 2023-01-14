@@ -101,7 +101,7 @@ impl Connect4 {
             3, 4, 6, 7, 6, 4, 3,
             2, 4, 6, 7, 6, 4, 2,
             2, 4, 6, 7, 6, 4, 2,
-            3, 4, 6, 7, 6, 4, 2,
+            3, 4, 6, 7, 6, 4, 3,
         ];
 
         let score_player = |player: Player| {
@@ -209,7 +209,7 @@ impl Display for Connect4 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Player, State};
+    use crate::{Player, Score, State};
 
     use super::Connect4;
 
@@ -233,14 +233,19 @@ mod tests {
         Connect4 { positions }
     }
 
-    fn test(board: &str, state: State) {
+    fn test_result(board: &str, state: State) {
         let board = parse_board(board);
         assert_eq!(board.result(), state);
     }
 
+    fn test_rate(board: &str, player: Player, score: Score) {
+        let board = parse_board(board);
+        assert_eq!(board.rate(player), score);
+    }
+
     #[test]
     fn draw() {
-        test(
+        test_result(
             "
         XOOOXOX
         XOOOXOX
@@ -253,7 +258,7 @@ mod tests {
 
     #[test]
     fn full_winner() {
-        test(
+        test_result(
             "
         XOOOXOX
         XOOOXOX
@@ -266,7 +271,7 @@ mod tests {
 
     #[test]
     fn three_rows() {
-        test(
+        test_result(
             "
         XXX_OOO
         _XXX___
@@ -275,5 +280,61 @@ mod tests {
         ",
             State::InProgress,
         );
+    }
+
+    #[test]
+    fn rate_alone_edge() {
+        test_rate(
+            "
+        _______
+        _______
+        _______
+        ______X
+        ",
+            Player::X,
+            Score(3),
+        )
+    }
+
+    #[test]
+    fn rate_alone_center() {
+        test_rate(
+            "
+        _______
+        _______
+        _______
+        ___X___
+        ",
+            Player::X,
+            Score(7),
+        )
+    }
+
+    #[test]
+    fn rate_pair_center() {
+        test_rate(
+            "
+        _______
+        _______
+        _______
+        O__X___
+        ",
+            Player::X,
+            Score(4),
+        )
+    }
+
+    #[test]
+    fn rate_pair_edge() {
+        test_rate(
+            "
+        _______
+        _______
+        _______
+        O_____X
+        ",
+            Player::X,
+            Score(0),
+        )
     }
 }

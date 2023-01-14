@@ -71,7 +71,7 @@ impl<G: Game> PerfectPlayer<G> {
 
                     board.undo_move(pos);
 
-                    if value >= max_value {
+                    if value > max_value {
                         max_value = value;
                         if depth == 0 {
                             self.best_move = Some(pos);
@@ -107,7 +107,11 @@ impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
         self.best_move = None;
         self.minmax(board, this_player, Score::LOST, Score::WON, 0);
 
-        board.make_move(self.best_move.expect("could not make move"), this_player);
+        board.make_move(
+            self.best_move
+                .unwrap_or_else(|| board.possible_moves().next().expect("cannot make move")),
+            this_player,
+        );
 
         if self.print_time {
             let duration = start.elapsed();
