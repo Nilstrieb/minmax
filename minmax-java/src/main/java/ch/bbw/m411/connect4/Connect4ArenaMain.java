@@ -67,65 +67,7 @@ public class Connect4ArenaMain {
     }
 
     boolean isWinning(Stone[] board, Stone forColor) {
-        var increment = 0;
-        for (int i = 27; i >= 0; i--) {
-            if (forColor != board[i]) {
-                increment = 0;
-                continue;
-            }
-
-            // Horizontal reset
-            if (i == 20 || i == 13 || i == 6) {
-                increment = 0;
-            }
-
-            increment++;
-            // Horizontal
-            if (increment == 4) {
-                return true;
-            }
-
-            if (i > 20) {
-                // Vertical
-                var vertical = true;
-                for (int y = i - 7; y >= 0; y -= 7) {
-                    if (board[y] != forColor) {
-                        vertical = false;
-                        break;
-                    }
-                }
-                if (vertical) {
-                    return true;
-                }
-                // Diagonally
-                if (i <= 24) {
-                    var diagonal = true;
-                    for (int y = i; y >= 0; y -= 7 - 1) {
-                        if (board[y] != forColor) {
-                            diagonal = false;
-                            break;
-                        }
-                    }
-                    if (diagonal) {
-                        return true;
-                    }
-                }
-
-                if (i >= 24) {
-                    var diagonal = true;
-                    for (int y = i; y >= 0; y -= 7 + 1) {
-                        if (board[y] != forColor) {
-                            diagonal = false;
-                            break;
-                        }
-                    }
-                    if (diagonal) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return RustPlayer.isWinning(board, forColor);
     }
 
     public enum Stone {

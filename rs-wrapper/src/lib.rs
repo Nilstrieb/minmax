@@ -2,7 +2,7 @@ use jni::objects::{JClass, JObject, ReleaseMode};
 use jni::sys::{jbyte, jint};
 use jni::JNIEnv;
 use minmax::{connect4::board::Connect4, GamePlayer};
-use minmax::{Game, PerfectPlayer, Player};
+use minmax::{Game, PerfectPlayer, Player, State};
 
 /// We need to map the board.
 /// Rust:
@@ -28,7 +28,16 @@ fn map_idx(i: usize) -> usize {
     }
 }
 
-fn crate_board(java_board: &[i8]) -> Connect4 {
+unsafe fn create_board(env: JNIEnv<'_>, board: JObject<'_>) -> Connect4 {
+    let board_size = env.get_array_length(board.into_raw()).unwrap();
+    assert_eq!(board_size, 28);
+
+    let byte_array = env
+        .get_byte_array_elements(board.into_raw(), ReleaseMode::NoCopyBack)
+        .unwrap();
+
+    let java_board = unsafe { std::slice::from_raw_parts(byte_array.as_ptr().cast::<u8>(), 28) };
+
     let mut board = Connect4::new();
 
     for i in 0..28 {
@@ -37,7 +46,9 @@ fn crate_board(java_board: &[i8]) -> Connect4 {
             0 => Some(Player::X),
             1 => Some(Player::O),
             2 => None,
-            _ => unreachable!(),
+            _ => unreachable!(
+                "Java code passed an invalid value as the byte of the board: {java_int}"
+            ),
         };
 
         let rust_index = map_idx(i);
@@ -51,17 +62,8 @@ fn crate_board(java_board: &[i8]) -> Connect4 {
 // 0 -> RED -> X
 // 1 -> BLUE -> O
 // 2 -> empty
-pub fn wrap_player(env: JNIEnv<'_>, current_player: i8, board: JObject<'_>) -> i32 {
-    let board_size = env.get_array_length(board.into_raw()).unwrap();
-    assert_eq!(board_size, 28);
-
-    let byte_array = env
-        .get_byte_array_elements(board.into_raw(), ReleaseMode::NoCopyBack)
-        .unwrap();
-
-    let slice = unsafe { std::slice::from_raw_parts(byte_array.as_ptr() as *const _, 28) };
-
-    let mut board = crate_board(slice);
+pub fn play_move(env: JNIEnv<'_>, current_player: i8, board: JObject<'_>) -> i32 {
+    let mut board = unsafe { create_board(env, board) };
 
     let mut player = PerfectPlayer::new(false);
 
@@ -82,8 +84,18 @@ pub fn wrap_player(env: JNIEnv<'_>, current_player: i8, board: JObject<'_>) -> i
     java_idx
 }
 
-// This keeps Rust from "mangling" the name and making it unique for this
-// crate.
+fn board_winner(env: JNIEnv<'_>, board: JObject<'_>) -> i32 {
+    let board = unsafe { create_board(env, board) };
+
+    let state = board.result();
+    match state {
+        State::Draw => 2,
+        State::InProgress => 2,
+        State::Winner(Player::X) => 0,
+        State::Winner(Player::O) => 1,
+    }
+}
+
 #[no_mangle]
 pub extern "system" fn Java_ch_bbw_m411_connect4_RustPlayer_rustPlay(
     env: JNIEnv<'_>,
@@ -94,6 +106,18 @@ pub extern "system" fn Java_ch_bbw_m411_connect4_RustPlayer_rustPlay(
     player: jbyte,
     board: JObject<'_>,
 ) -> jint {
-    std::panic::catch_unwind(|| wrap_player(env, player, board))
+    std::panic::catch_unwind(|| play_move(env, player, board))
         .unwrap_or_else(|_| std::process::abort())
+}
+
+#[no_mangle]
+pub extern "system" fn Java_ch_bbw_m411_connect4_RustPlayer_rustBoardWinner(
+    env: JNIEnv<'_>,
+    // This is the class that owns our static method. It's not going to be used,
+    // but still must be present to match the expected signature of a static
+    // native method.
+    _: JClass<'_>,
+    board: JObject<'_>,
+) -> jint {
+    std::panic::catch_unwind(|| board_winner(env, board)).unwrap_or_else(|_| std::process::abort())
 }
