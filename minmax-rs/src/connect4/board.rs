@@ -156,6 +156,7 @@ impl Game for Connect4 {
 
     fn possible_moves(&self) -> impl Iterator<Item = Self::Move> {
         let board = self.clone();
+        // FIXME: If we reorder the moves so that the potentially better ones (center) come first we get better.
         (0..WIDTH).filter(move |col| board[*col].is_none())
     }
 
