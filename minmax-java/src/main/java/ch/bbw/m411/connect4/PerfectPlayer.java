@@ -70,7 +70,8 @@ public class PerfectPlayer extends Connect4ArenaMain.DefaultPlayer {
     @Override
     protected int play() {
         bestMove = -1;
-        minmax(myColor, LOST, WON, 0);
+        // LOST -1 so that at least one move is better and gets selected even when everything is lost
+        minmax(myColor, LOST - 1, WON, 0);
         return this.bestMove;
     }
 }
