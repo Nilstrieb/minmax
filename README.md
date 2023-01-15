@@ -1,5 +1,7 @@
 # Minmax in Rust with JNI
 
+The `isWinning` method always requires Rust and calls it via JNI. For the perfect player, there are two implementations. `PerfectPlayer` which is a small alpha-beta in Java and `RustPlayer` which uses the better Rust implementation via JNI. If you can be bothered to set up `RustPlayer` then use it, if you can't then `PerfectPlayer` is fine too.
+
 ## How to build and run
 
 ### On Linux
@@ -17,5 +19,9 @@ If you don't like setting `LD_LIBRARY_PATH` then you can also run `sudo cp targe
 It should probably the same as linux? except for the `cp` part apples native library layout is different. but actually the error message will tell you where it looks so you can just copy it there i think? havent tested it
 
 ### On Windows
+
+on windows it only works if you are in this directory, but then it does Just Work after the rust build.
+
+If you want to move this player to another location on windows, you have to delete the `if (System.getProperty("os.name").toLowerCase().contains("windows"))` check and always run the not-windows path.
 
 you're on your own but you can do this, it's similar to linux except you have to run `cargo build --release` yourself and have to `target/release/minmax_wrapper.dll` to the directories where the other library are (the link error message will tell you where that is)
