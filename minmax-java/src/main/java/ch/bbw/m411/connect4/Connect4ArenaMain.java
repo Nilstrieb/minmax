@@ -17,7 +17,7 @@ public class Connect4ArenaMain {
     static final int NOMOVE = -1;
 
     public static void main(String[] args) {
-        new Connect4ArenaMain().play(new RustPlayer(), new GreedyPlayer());
+        new Connect4ArenaMain().play(new HumanPlayer(), new PerfectPlayer());
     }
 
     static String toDebugString(Stone[] board) {
@@ -66,7 +66,7 @@ public class Connect4ArenaMain {
         return null; // null implies a draw
     }
 
-    boolean isWinning(Stone[] board, Stone forColor) {
+    public static boolean isWinning(Stone[] board, Stone forColor) {
         return RustPlayer.isWinning(board, forColor);
     }
 
