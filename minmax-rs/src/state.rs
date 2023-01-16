@@ -1,6 +1,6 @@
 use std::{
-    fmt::Display,
-    ops::{ControlFlow, Try},
+    fmt::{Display, Debug},
+    ops::{ControlFlow, Try, Neg},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -92,6 +92,45 @@ impl Try for State {
         match self {
             Self::InProgress => ControlFlow::Continue(self),
             Self::Winner(_) | Self::Draw => ControlFlow::Break(self),
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Score(pub i32);
+
+impl Score {
+    // Due to the nature of two's completement, we can't actually negate this properly, so add 1.
+    pub const LOST: Self = Self(i32::MIN + 1);
+    pub const TIE: Self = Self(0);
+    pub const WON: Self = Self(i32::MAX);
+
+    pub fn new(int: i32) -> Self {
+        Self(int)
+    }
+
+    #[allow(unused)]
+    fn randomize(self) -> Self {
+        let score = self.0 as f32;
+        let rand = rand::thread_rng();
+        self
+    }
+}
+
+impl Neg for Score {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self(-self.0)
+    }
+}
+
+impl Debug for Score {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Self::WON => f.write_str("WON"),
+            Self::LOST => f.write_str("LOST"),
+            Self(other) => Debug::fmt(&other, f),
         }
     }
 }
