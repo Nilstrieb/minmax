@@ -8,9 +8,9 @@
 
 pub mod connect4;
 mod minmax;
-pub mod tic_tac_toe;
-
 pub mod player;
+mod state;
+pub mod tic_tac_toe;
 
 use std::{
     fmt::{Debug, Display},
@@ -18,7 +18,7 @@ use std::{
 };
 
 pub use self::minmax::PerfectPlayer;
-pub use player::{Player, State};
+pub use self::state::{Player, State};
 
 pub trait GamePlayer<G: ?Sized + Game> {
     fn next_move(&mut self, board: &mut G, this_player: Player);

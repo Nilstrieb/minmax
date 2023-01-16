@@ -3,9 +3,10 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::{Game, Player, Score, State};
-
-type Position = Option<Player>;
+use crate::{
+    state::{position_as_int, Position},
+    Game, Player, Score, State,
+};
 
 const WIDTH: usize = 7;
 const HEIGTH: usize = 4;
@@ -83,16 +84,19 @@ impl Connect4 {
     }
 
     fn check_four(&self, a: usize, b: usize, c: usize, d: usize) -> State {
-        self[a]
-            .map(|player| {
-                if player == self[a] && player == self[b] && player == self[c] && player == self[d]
-                {
-                    State::Winner(player)
-                } else {
-                    State::InProgress
-                }
-            })
-            .unwrap_or(State::InProgress)
+        // Instead of doing a branch after each field (slow) we just check all fields.
+        // On each field, we get the integer value of the field (empty -> 0, X -> 1, O -> 16).
+        // We sum them all. If all of them are X, the sum is 4. If all of them are O, the sum is 64.
+        let sum = position_as_int(self[a])
+            + position_as_int(self[b])
+            + position_as_int(self[c])
+            + position_as_int(self[d]);
+
+        match sum {
+            4 => State::Winner(Player::X),
+            64 => State::Winner(Player::O),
+            _ => State::InProgress,
+        }
     }
 
     fn rate(&self, player: Player) -> Score {
@@ -156,7 +160,9 @@ impl Game for Connect4 {
 
     fn possible_moves(&self) -> impl Iterator<Item = Self::Move> {
         let board = self.clone();
-        [3, 2, 4, 1, 5, 0, 6].into_iter().filter(move |col| board[*col].is_none())
+        [3, 2, 4, 1, 5, 0, 6]
+            .into_iter()
+            .filter(move |col| board[*col].is_none())
     }
 
     fn result(&self) -> State {
