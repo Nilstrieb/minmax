@@ -3,3 +3,4 @@ minmax-java/.gradle
 .idea
 target
 *.so
+perf.*
