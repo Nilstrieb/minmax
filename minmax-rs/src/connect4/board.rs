@@ -101,7 +101,7 @@ impl Connect4 {
 
     fn rate(&self, player: Player) -> Score {
         #[rustfmt::skip]
-        const WIN_COUNT_TABLE: [i32; BOARD_POSITIONS] = [
+        const WIN_COUNT_TABLE: [i16; BOARD_POSITIONS] = [
             3, 4, 6, 7, 6, 4, 3,
             2, 4, 6, 7, 6, 4, 2,
             2, 4, 6, 7, 6, 4, 2,
@@ -114,10 +114,10 @@ impl Connect4 {
                 .enumerate()
                 .filter(|(_, state)| **state == Some(player))
                 .map(|(pos, _)| WIN_COUNT_TABLE[pos])
-                .sum::<i32>()
+                .sum::<i16>()
         };
 
-        Score::new(score_player(player) - score_player(player.opponent()))
+        Score::new(i32::from(score_player(player) - score_player(player.opponent())))
     }
 
     pub fn drop_player(&self, position: usize) -> usize {
