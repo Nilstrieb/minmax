@@ -43,7 +43,6 @@ impl<G: Game> PerfectPlayer<G> {
     ) -> Score {
         // FIXME: Make depth decrease not increase.
         if let Some(max_depth) = self.max_depth && depth >= max_depth {
-            // FIXME: Why do we have rate and result?
             return board.rate(maximizing_player);
         }
 
