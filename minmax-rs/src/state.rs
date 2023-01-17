@@ -1,3 +1,5 @@
+//! All of the overengineered code around Players and Scores.
+
 use std::{
     fmt::{Debug, Display},
     marker::PhantomData,
@@ -100,6 +102,7 @@ impl Try for State {
 // This fun generic setup ensures that we never compare two scores from different layers.
 pub struct Score<P>(pub i32, PhantomData<P>);
 
+// your brain on types. this is really bad. but really funny. and it works.
 pub trait MinmaxPlayer {
     type Enemy: MinmaxPlayer<Enemy = Self>;
 }
