@@ -1,3 +1,6 @@
+//! The core logic of the minmax algorithm.
+//! It's generic over [`Game`] and works with every game.
+
 use std::time::Instant;
 
 use crate::{Game, GamePlayer, Player, Score, State};
@@ -37,8 +40,8 @@ impl<G: Game> PerfectPlayer<G> {
         &mut self,
         board: &mut G,
         maximizing_player: Player,
-        alpha: Score,
-        beta: Score,
+        grandparents_favourite_child_alpha: Score,
+        parents_favourite_child_beta: Score,
         depth: usize,
     ) -> Score {
         // FIXME: Make depth decrease not increase.
@@ -49,21 +52,40 @@ impl<G: Game> PerfectPlayer<G> {
         match board.result() {
             State::Winner(winner) => {
                 if winner == maximizing_player {
+                    // Our maximizing player wins the game, so this node is a win for it.
                     Score::WON
                 } else {
+                    // The maximizing player lost the board here, so the node is a loss.
                     Score::LOST
                 }
             }
             State::Draw => Score::TIE,
             State::InProgress => {
-                let mut max_value = alpha;
+                // The board isn't done yet, go deeper!
+                // The alpha is the favourite (highest reward) child of our grandparent (who's on our side!).
+                let mut max_value = grandparents_favourite_child_alpha;
 
                 for pos in board.possible_moves() {
                     board.make_move(pos, maximizing_player);
+
+                    // Calculate the move for the nested call. This goes one layer deeper.
+                    // The number represents the *return* value of the node.
+                    // A is a very bad child for P (-10). B seems promising for now as 11 is a lot bigger than -10.
+                    //
+                    // X    P(  ) max_value: -10
+                    //       /  \
+                    // O A(10) B(  ) <- we are here in the loop and about to call D
+                    //          /  \
+                    // X    C(11) D(  )
                     let value = -self.minmax(
                         board,
+                        // The player that will maximize this round is now the opponent. This layer it was our original
+                        // opponent, O, but in the nested round it's X's turn again so they will try to maximize their score.
                         maximizing_player.opponent(),
-                        -beta,
+                        // Our childs grandparent is out parent. We use negative to normalize the value into our child's
+                        // layer again. Every time a score is moved between a layer it has to be normalized like this.
+                        -parents_favourite_child_beta,
+                        // We are the parent of our child. Normalize the value with the negative sign.
                         -max_value,
                         depth + 1,
                     );
@@ -77,18 +99,20 @@ impl<G: Game> PerfectPlayer<G> {
                         }
 
                         // Imagine a game tree like this
-                        //    P(  )
-                        //     /  \
-                        // A(10) B(  ) <- we are here in the loop for the first child that returned 11.
-                        //        /  \
-                        //     C(11) D(  )
+                        // The goal of this entire recursion is to find the best play for P (X).
                         //
-                        // Our beta parameter is 10, because that's the current max_value of our parent.
+                        // X     P(  ) max_value: 10
+                        //        /  \
+                        // O  A(-10) B(  ) <- we are here in the loop for the first child that returned -10 (looks like 10 for us).
+                        //            /  \
+                        // X       C(-10) D(  )
+                        //
+                        // Our beta parameter is -10, because that's our best (for P) currently known sibling.
                         // If P plays B, we know that B will pick something _at least_ as good as C. This means
-                        // that B will be -11 or worse. -11 is definitly worse than -10, so playing B is definitly
-                        // a very bad idea, no matter the value of D. So don't even bother calculating the value of D
-                        // and just break out.
-                        if max_value >= beta {
+                        // that B will pick something that's -10 or lower for P. -10 is definitly worse than 10, the current
+                        // max_value for P, so playing B is definitly a very bad idea, no matter the horrors behind D.
+                        // So don't even bother calculating the value of D and just break out.
+                        if max_value >= parents_favourite_child_beta {
                             break;
                         }
                     }
@@ -104,6 +128,8 @@ impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
     fn next_move(&mut self, board: &mut G, this_player: Player) {
         let start = Instant::now();
         self.best_move = None;
+
+        // Get the rating for the one move we will make.
         self.minmax(board, this_player, Score::LOST, Score::WON, 0);
 
         board.make_move(

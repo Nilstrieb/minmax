@@ -2,7 +2,8 @@
     never_type,
     try_trait_v2,
     return_position_impl_trait_in_trait,
-    let_chains
+    let_chains,
+    adt_const_params
 )]
 #![allow(incomplete_features)]
 
