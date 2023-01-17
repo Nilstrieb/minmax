@@ -3,7 +3,6 @@
     try_trait_v2,
     return_position_impl_trait_in_trait,
     let_chains,
-    adt_const_params
 )]
 #![allow(incomplete_features)]
 
@@ -14,6 +13,8 @@ mod state;
 pub mod tic_tac_toe;
 
 use std::fmt::Display;
+
+use state::IgnorePlayer;
 
 pub use self::minmax::PerfectPlayer;
 pub use self::state::{Player, Score, State};
@@ -47,7 +48,7 @@ pub trait Game: Display {
     fn result(&self) -> State;
 
     /// Only called if [`GameBoard::REASONABLE_SEARCH_DEPTH`] is `Some`.
-    fn rate(&self, player: Player) -> Score;
+    fn rate(&self, player: Player) -> Score<IgnorePlayer>;
 
     fn make_move(&mut self, position: Self::Move, player: Player);
 

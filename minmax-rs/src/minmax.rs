@@ -3,7 +3,10 @@
 
 use std::time::Instant;
 
-use crate::{Game, GamePlayer, Player, Score, State};
+use crate::{
+    state::{GoodPlayer, MinmaxPlayer},
+    Game, GamePlayer, Player, Score, State,
+};
 
 #[derive(Clone)]
 pub struct PerfectPlayer<G: Game> {
@@ -36,30 +39,30 @@ impl<G: Game> PerfectPlayer<G> {
         self.best_move.expect("no move made yet")
     }
 
-    fn minmax(
+    fn minmax<P: MinmaxPlayer>(
         &mut self,
         board: &mut G,
         maximizing_player: Player,
-        grandparents_favourite_child_alpha: Score,
-        parents_favourite_child_beta: Score,
+        grandparents_favourite_child_alpha: Score<P>,
+        parents_favourite_child_beta: Score<P>,
         depth: usize,
-    ) -> Score {
+    ) -> Score<P> {
         // FIXME: Make depth decrease not increase.
         if let Some(max_depth) = self.max_depth && depth >= max_depth {
-            return board.rate(maximizing_player);
+            return board.rate(maximizing_player).for_player::<P>();
         }
 
         match board.result() {
             State::Winner(winner) => {
                 if winner == maximizing_player {
                     // Our maximizing player wins the game, so this node is a win for it.
-                    Score::WON
+                    Score::WON.for_player::<P>()
                 } else {
                     // The maximizing player lost the board here, so the node is a loss.
-                    Score::LOST
+                    Score::LOST.for_player::<P>()
                 }
             }
-            State::Draw => Score::TIE,
+            State::Draw => Score::TIE.for_player::<P>(),
             State::InProgress => {
                 // The board isn't done yet, go deeper!
                 // The alpha is the favourite (highest reward) child of our grandparent (who's on our side!).
@@ -77,7 +80,7 @@ impl<G: Game> PerfectPlayer<G> {
                     // O A(10) B(  ) <- we are here in the loop and about to call D
                     //          /  \
                     // X    C(11) D(  )
-                    let value = -self.minmax(
+                    let value = -self.minmax::<P::Enemy>(
                         board,
                         // The player that will maximize this round is now the opponent. This layer it was our original
                         // opponent, O, but in the nested round it's X's turn again so they will try to maximize their score.
@@ -130,7 +133,13 @@ impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
         self.best_move = None;
 
         // Get the rating for the one move we will make.
-        self.minmax(board, this_player, Score::LOST, Score::WON, 0);
+        self.minmax::<GoodPlayer>(
+            board,
+            this_player,
+            Score::LOST.for_player::<GoodPlayer>(),
+            Score::WON.for_player::<GoodPlayer>(),
+            0,
+        );
 
         board.make_move(
             self.best_move

@@ -1,6 +1,6 @@
 use std::fmt::{Display, Write};
 
-use crate::{Game, Player, Score, State};
+use crate::{Game, Player, Score, State, state::IgnorePlayer};
 
 #[derive(Clone)]
 pub struct TicTacToe(u32);
@@ -138,7 +138,7 @@ impl Game for TicTacToe {
         TicTacToe::result(self)
     }
 
-    fn rate(&self, player: Player) -> Score {
+    fn rate(&self, player: Player) -> Score<IgnorePlayer> {
         match self.result() {
             State::Winner(winner) if player == winner => Score::WON,
             State::Winner(_) => Score::LOST,

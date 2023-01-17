@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    state::{position_as_int, Position},
+    state::{position_as_int, IgnorePlayer, Position},
     Game, Player, Score, State,
 };
 
@@ -99,7 +99,7 @@ impl Connect4 {
         }
     }
 
-    fn rate(&self, player: Player) -> Score {
+    fn rate(&self, player: Player) -> Score<IgnorePlayer> {
         #[rustfmt::skip]
         const WIN_COUNT_TABLE: [i16; BOARD_POSITIONS] = [
             3, 4, 6, 7, 6, 4, 3,
@@ -117,7 +117,9 @@ impl Connect4 {
                 .sum::<i16>()
         };
 
-        Score::new(i32::from(score_player(player) - score_player(player.opponent())))
+        Score::new(i32::from(
+            score_player(player) - score_player(player.opponent()),
+        ))
     }
 
     pub fn drop_player(&self, position: usize) -> usize {
@@ -185,7 +187,7 @@ impl Game for Connect4 {
         }
     }
 
-    fn rate(&self, player: Player) -> Score {
+    fn rate(&self, player: Player) -> Score<IgnorePlayer> {
         Connect4::rate(&self, player)
     }
 }
@@ -215,7 +217,7 @@ impl Display for Connect4 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Player, Score, State};
+    use crate::{Player, Score, State, state::IgnorePlayer};
 
     use super::Connect4;
 
@@ -244,7 +246,7 @@ mod tests {
         assert_eq!(board.result(), state);
     }
 
-    fn test_rate(board: &str, player: Player, score: Score) {
+    fn test_rate(board: &str, player: Player, score: Score<IgnorePlayer>) {
         let board = parse_board(board);
         assert_eq!(board.rate(player), score);
     }
@@ -298,7 +300,7 @@ mod tests {
         ______X
         ",
             Player::X,
-            Score(3),
+            Score::new(3),
         )
     }
 
@@ -312,7 +314,7 @@ mod tests {
         ___X___
         ",
             Player::X,
-            Score(7),
+            Score::new(7),
         )
     }
 
@@ -326,7 +328,7 @@ mod tests {
         O__X___
         ",
             Player::X,
-            Score(4),
+            Score::new(4),
         )
     }
 
@@ -340,7 +342,7 @@ mod tests {
         O_____X
         ",
             Player::X,
-            Score(0),
+            Score::new(0),
         )
     }
 }

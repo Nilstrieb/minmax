@@ -1,6 +1,7 @@
 use std::{
-    fmt::{Display, Debug},
-    ops::{ControlFlow, Try, Neg},
+    fmt::{Debug, Display},
+    marker::PhantomData,
+    ops::{ControlFlow, Neg, Try},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -96,17 +97,44 @@ impl Try for State {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Score(pub i32);
+// This fun generic setup ensures that we never compare two scores from different layers.
+pub struct Score<P>(pub i32, PhantomData<P>);
 
-impl Score {
+pub trait MinmaxPlayer {
+    type Enemy: MinmaxPlayer<Enemy = Self>;
+}
+pub struct GoodPlayer;
+pub struct EvilPlayer;
+pub struct IgnorePlayer;
+
+impl MinmaxPlayer for GoodPlayer {
+    type Enemy = EvilPlayer;
+}
+impl MinmaxPlayer for EvilPlayer {
+    type Enemy = GoodPlayer;
+}
+impl MinmaxPlayer for IgnorePlayer {
+    type Enemy = Self;
+}
+
+impl Score<IgnorePlayer> {
     // Due to the nature of two's completement, we can't actually negate this properly, so add 1.
-    pub const LOST: Self = Self(i32::MIN + 1);
-    pub const TIE: Self = Self(0);
-    pub const WON: Self = Self(i32::MAX);
+    pub const LOST: Self = Self(i32::MIN + 1, PhantomData);
+    pub const TIE: Self = Self(0, PhantomData);
+    pub const WON: Self = Self(i32::MAX, PhantomData);
 
+    pub fn for_player<P>(self) -> Score<P> {
+        Score(self.0, PhantomData)
+    }
+}
+
+impl<P> Score<P> {
     pub fn new(int: i32) -> Self {
-        Self(int)
+        Self(int, PhantomData)
+    }
+
+    pub fn ignore_side(self) -> Score<IgnorePlayer> {
+        Score(self.0, PhantomData)
     }
 
     #[allow(unused)]
@@ -117,20 +145,51 @@ impl Score {
     }
 }
 
-impl Neg for Score {
-    type Output = Self;
+impl<P: MinmaxPlayer> Neg for Score<P> {
+    type Output = Score<P::Enemy>;
 
     fn neg(self) -> Self::Output {
-        Self(-self.0)
+        Score(-self.0, PhantomData)
     }
 }
 
-impl Debug for Score {
+impl<P> PartialEq for Score<P> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<P> Eq for Score<P> {}
+
+impl<P> PartialOrd for Score<P> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
+
+impl<P> Ord for Score<P> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl<P> Clone for Score<P> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<P> Copy for Score<P> {}
+
+impl<P> Debug for Score<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match *self {
-            Self::WON => f.write_str("WON"),
-            Self::LOST => f.write_str("LOST"),
-            Self(other) => Debug::fmt(&other, f),
+        // this should be a match but StructuralEq does not like me
+        if self.ignore_side() == Score::WON {
+            f.write_str("WON")
+        } else if Score::LOST == self.ignore_side() {
+            f.write_str("LOST")
+        } else {
+            Debug::fmt(&self.0, f)
         }
     }
 }
