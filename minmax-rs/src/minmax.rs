@@ -35,8 +35,9 @@ impl<G: Game> PerfectPlayer<G> {
         self
     }
 
-    pub fn best_move(&self) -> G::Move {
-        self.best_move.expect("no move made yet")
+    pub fn best_move(&self, board: &G) -> G::Move {
+        self.best_move
+            .unwrap_or_else(|| board.possible_moves().next().expect("cannot make move"))
     }
 
     fn minmax<P: MinmaxPlayer>(
@@ -141,11 +142,7 @@ impl<G: Game> GamePlayer<G> for PerfectPlayer<G> {
             0,
         );
 
-        board.make_move(
-            self.best_move
-                .unwrap_or_else(|| board.possible_moves().next().expect("cannot make move")),
-            this_player,
-        );
+        board.make_move(self.best_move(board), this_player);
 
         if self.print_time {
             let duration = start.elapsed();

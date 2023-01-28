@@ -74,7 +74,7 @@ pub fn play_move(env: JNIEnv<'_>, current_player: i8, board: JObject<'_>) -> i32
     };
 
     player.next_move(&mut board, current_player_rust);
-    let result_move = player.best_move();
+    let result_move = player.best_move(&board);
     board.undo_move(result_move);
 
     let result_move = board.drop_player(result_move);
